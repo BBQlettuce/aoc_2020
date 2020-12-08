@@ -1,4 +1,4 @@
-with open("/Users/oscarliu/Desktop/aoc/day7.txt") as f:
+with open("./day7.txt") as f:
     rules = f.read().strip().split("\n")
 
 # final structure
