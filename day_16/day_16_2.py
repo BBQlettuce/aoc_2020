@@ -1,5 +1,6 @@
 import re
 from itertools import chain
+from copy import deepcopy
 
 with open("./input.txt") as f:
     [rules, my_ticket, tickets] = f.read().strip().split('\n\n')
@@ -56,7 +57,7 @@ rule_names = PARSED_RULES.keys()
 # deleting when an impossible condition is met
 possible_configs = {i: set(rule_names) for i in range(num_rules)}
 for ticket in cleaned_tickets:
-    print(ticket)
+    # print(ticket)
     for idx in range(num_rules):
         value = ticket[idx]
         for rule_name in rule_names:
@@ -69,10 +70,55 @@ for ticket in cleaned_tickets:
                 (value >= rule1['min'] and value <= rule1['max']) or
                 (value >= rule2['min'] and value <= rule2['max'])
             ):
-                print(f'removing {rule_name} from {idx}')
+                #print(f'removing {rule_name} from {idx}')
                 possible_configs[idx].remove(rule_name)
 
-print(possible_configs)
+# print(possible_configs)
 
-# find a combo that fits all the remaining possible_configs
-# try option, if it leads to an impossible situation, can remove it
+# reverse it:
+possible_configs_reversed = {rn: set() for rn in rule_names}
+for rn in rule_names:
+    for idx in possible_configs:
+        if rn in possible_configs[idx]:
+            possible_configs_reversed[rn].add(idx)
+
+# print(possible_configs_reversed)
+# this lets me pick rules off
+def is_solved(config):
+    for rn in rule_names:
+        if len(config[rn]) > 1:
+            return False
+    return True
+
+current_rules = deepcopy(possible_configs_reversed)
+print(current_rules)
+current_rule_names = list(rule_names)
+solved_rules = {}
+while len(current_rule_names) > 0:
+    print(solved_rules)
+    for rn in current_rule_names:
+        print(current_rules[rn])
+        if len(current_rules[rn]) > 1:
+            continue
+        else:
+            answer = list(current_rules[rn])[0]
+            solved_rules[rn] = answer
+            # remove this answer from the other possible rules
+            for key in current_rules:
+                try:
+                    current_rules[key].remove(answer)
+                except:
+                    continue
+            # remove this rule name from checks
+            current_rule_names = [crn for crn in current_rule_names if crn != rn]
+            break
+
+print(solved_rules)
+
+# get solution
+my_ticket = [int(n) for n in my_ticket.split(',')]
+product = 1
+for k in solved_rules:
+    if "departure" in k:
+        product *= my_ticket[solved_rules[k]]
+print(product)
